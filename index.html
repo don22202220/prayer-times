@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أوقات الصلاة</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+      text-align: center;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+      font-size: 1.8rem;
+    }
+    p {
+      font-size: 1rem;
+      color: #555;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      font-size: 1.2rem;
+      color: #444;
+      background: #e0f7fa;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>أوقات الصلاة</h1>
+    <p id="location-status">جاري تحديد موقعك...</p>
+    <ul id="prayer-times"></ul>
+  </div>
+  <script>
+    const prayerTimesList = document.getElementById("prayer-times");
+    const locationStatus = document.getElementById("location-status");
+
+    // التحقق من دعم الموقع الجغرافي
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          fetchPrayerTimes(latitude, longitude);
+        },
+        (error) => {
+          locationStatus.textContent = "لم يتمكن من تحديد موقعك. الرجاء التحقق من إعدادات الموقع.";
+        }
+      );
+    } else {
+      locationStatus.textContent = "المتصفح الخاص بك لا يدعم تحديد الموقع الجغرافي.";
+    }
+
+    // جلب أوقات الصلاة باستخدام Aladhan API
+    function fetchPrayerTimes(latitude, longitude) {
+      const apiUrl = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=4`;
+
+      fetch(apiUrl)
+        .then((response) => response.json())
+        .then((data) => {
+          locationStatus.textContent = "تم تحديد موقعك بنجاح!";
+          displayPrayerTimes(data.data.timings);
+        })
+        .catch(() => {
+          locationStatus.textContent = "حدث خطأ أثناء جلب أوقات الصلاة.";
+        });
+    }
+
+    // عرض أوقات الصلاة في القائمة
+    function displayPrayerTimes(timings) {
+      prayerTimesList.innerHTML = ""; // تفريغ القائمة الحالية
+      for (const [prayer, time] of Object.entries(timings)) {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${prayer}: ${time}`;
+        prayerTimesList.appendChild(listItem);
+      }
+    }
+  </script>
+</body>
+</html>
